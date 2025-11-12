@@ -61,4 +61,38 @@ Common Pitfalls: Forgetting `$` in `run:`, or using vars before definition (orde
          - run: curl --header "Authorization: {{ env.API_KEY }}"  # Wrong syntax
    ```
 
+#### Solutions
+1. Solution:
+   ```yaml
+   name: Data Workflow
+   env:
+     DATA_PATH: 'data/input.csv'
+     MODEL_TYPE: ${{ inputs.model_type }}
+   on: workflow_dispatch
+   jobs:
+     process:
+       runs-on: ubuntu-latest
+       steps:
+         - run: echo "Processing..."
+   ```
+
+2. Solution:
+   ```yaml
+   jobs:
+     db-connect:
+       env:
+         DB_URL: ${{ secrets.DATABASE_URL }}
+       steps:
+         - run: echo "$DB_URL"
+   ```
+
+3. Solution:
+   ```yaml
+   env:
+     API_KEY:  ${{ secrets.MY_SECRET_KEY }}
+   jobs:
+     api:
+       steps:
+         - run: curl --header "Authorization: ${{ env.API_KEY }}"
+   ```
 
