@@ -1,4 +1,4 @@
-# Roadmap for Learning YAML for GitHub Actions Workflows
+# Roadmap for Learning GitHub Actions Workflows with YAML
 As a data scientist, you'll likely use `GitHub Actions` to automate tasks like,
 - data processing pipelines
 - model training
