@@ -65,3 +65,42 @@ Common Pitfalls: Invalid cron (test with crontab.guru), mismatched types for eve
      push:
        branches: main  # Not a list
    ```
+
+#### Solutions
+1. Solution:
+   ```yaml
+   name: PR Workflow
+   on:
+     pull_request:
+       types: [opened, closed]
+       branches:
+         - main
+       paths:
+         - 'src/*.py'
+         - 'data/**'
+   jobs:
+     check:
+       runs-on: ubuntu-latest
+   ```
+
+2. Solution:
+   ```yaml
+   on:
+     schedule:
+       - cron: '0 5 * * *' # Daily at 5 AM UTC
+     workflow_dispatch:
+       inputs:
+         model_type:
+           description: 'Type of ML model'
+           required: true
+   ```
+
+3. Solution:
+   ```yaml
+   on:
+     schedule:
+       - cron: '0 5 * * *'
+     push:
+       branches:
+         - main
+   ```
