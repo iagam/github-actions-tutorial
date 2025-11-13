@@ -44,7 +44,3 @@ The roadmap is divided into following logical topics.
 
 17. **Filter Patterns:** Advanced glob patterns for branches, paths, etc.
 
-18. **Putting It All Together:** Full workflow examples for data science use cases, plus tips for debugging.
-
-This should get you confident in writing your own workflows.
-
