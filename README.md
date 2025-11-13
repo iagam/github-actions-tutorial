@@ -40,7 +40,7 @@ The roadmap is divided into following logical topics.
 
 15. **Containers and Services:** `container`, `services`: Using Docker for reproducible data environments (e.g., with Jupyter or databases).
 
-16. **Reusable Workflows:** `uses`, `with`, sec`rets: Calling pre-built workflows (e.g., for standard data validation).
+16. **Reusable Workflows:** `uses`, `with`, `secrets`: Calling pre-built workflows (e.g., for standard data validation).
 
 17. **Filter Patterns:** Advanced glob patterns for branches, paths, etc.
 
