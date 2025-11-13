@@ -53,3 +53,32 @@ Common Pitfalls: Duplicate groups across workflows causing unexpected queuing. F
    on: pull_request
    ```
 
+#### Solutions
+1. Solution:
+   ```yaml
+   name: CI Workflow
+   concurrency:
+     group: 'ci-build'
+     cancel-in-progress: true
+   on: push
+   jobs:
+     build:
+       runs-on: ubuntu-latest
+       steps:
+         - run: make build
+   ```
+
+2. Solution:
+   ```yaml
+   concurrency:
+     group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+     cancel-in-progress: true
+   ```
+
+3. Solution:
+   ```yaml
+   concurrency:
+     group: 'ci-build'
+     cancel-in-progress: true
+   on: pull_request
+   ```
