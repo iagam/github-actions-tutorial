@@ -44,3 +44,38 @@ Common Pitfalls: Missing `runs-on` (required), invalid job IDs (must start with 
        steps: [...]
    ```
 
+#### Solutions
+1. Solution:
+   ```yaml
+   name: Data Pipeline
+   on: push
+   jobs:
+     validate-data:
+       runs-on: ubuntu-latest
+       steps: [...]
+     analyze:
+       needs: validate-data
+       runs-on: ubuntu-latest
+       steps: [...]
+   ```
+
+2. Solution:
+   ```yaml
+   jobs:
+     model-train:
+       if: ${{ github.ref == 'refs/heads/main' }}
+       runs-on: macos-latest
+       steps: [...]
+   ```
+
+3. Solution:
+   ```yaml
+   jobs:
+     test:
+       runs-on:  ubuntu-latest
+       steps: [...]
+     build:
+       needs: test
+       runs-on: ubuntu-latest
+       steps:  [...]
+   ```
