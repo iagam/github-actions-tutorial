@@ -47,6 +47,7 @@ Common Pitfalls: Invalid shells (must be installed on runner), or absolute paths
          - run: ls
    ```
 2. Write a job snippet with job-level `defaults.run.shell: pwsh` and a step that runs a PowerShell command (e.g., `Write-Output "Test"`).
+
 3. Fix this invalid defaults: The structure is wrong, and shell is invalid.
    ```yaml
    defaults: shell: sh  # Missing run map
@@ -55,3 +56,42 @@ Common Pitfalls: Invalid shells (must be installed on runner), or absolute paths
        steps:
          - run: echo "Hi"
    ```
+
+#### Solutions
+1. Solution:
+   ```yaml
+   name: Script Workflow
+   defaults:
+     run:
+       shell: bash
+       working-directory: 'data/scripts'
+   on: push
+   jobs:
+     execute:
+       runs-on: ubuntu-latest
+       steps:
+         - run: ls
+   ```
+
+2. Solution:
+   ```yaml
+   jobs:
+     execute:
+       defaults:
+         run:
+           shell: pwsh
+       steps:
+         - run: Write-Output "Test"
+   ```
+
+3. Solution:
+   ```yaml
+   defaults:
+     run:
+       shell: sh
+   jobs:
+     test:
+       steps:
+         - run: echo "Hi"
+   ```
+
