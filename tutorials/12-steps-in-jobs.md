@@ -1,101 +1,109 @@
-### Topic 12: Steps in Jobs Basics: jobs.<job_id> (Structure, needs, if, runs-on)
-Now that we've covered earlier topics like triggers, variables, and steps, we're diving into **jobs**—the core units of work in a GitHub Actions workflow. A workflow consists of one or more jobs, each of which runs in parallel by default (unless specified otherwise). Jobs are defined under the `jobs` key at the root level of your YAML file. This allows you to break down complex tasks, like a data science pipeline, into modular pieces: e.g., one job for data validation, another for model training, and a third for deployment.
+### Topic 12: Steps in Jobs: steps (Basics: id, if, name, run, uses)
+**Steps** are the individual actions within a job—they're the "what to do" inside each job (e.g., checking out code, installing dependencies, running a Python script for data analysis). A job must have at least one step under the `steps` key (a list of maps). Steps run sequentially in the job's runner environment.
 
-From the official GitHub documentation (workflow syntax section on jobs):
-- **Structure**: Each job is a map under `jobs.<job_id>`, where `<job_id>` is a unique string (e.g., `build`, `test`, `deploy`). Inside the job map, you define steps (which we'll cover in the next topic), but at a high level, jobs can include keys like `runs-on`, `needs`, `if`, `outputs`, and more. Jobs run on a runner (virtual machine or container) and can depend on each other.
-- **runs-on**: Specifies the runner environment (e.g., `ubuntu-latest` for Linux, `windows-latest` for Windows, or self-hosted). For data science, use `ubuntu-latest` for compatibility with tools like Python, R, or Docker. You can also specify labels for self-hosted runners.
-- **needs**: Defines job dependencies. A job only runs after the jobs listed in `needs` complete successfully. This creates a linear or DAG-like execution flow—useful for sequencing data tasks (e.g., `validate` needs to finish before `train`).
-- **if**: A conditional expression (using GitHub's `${{ }}` syntax) to skip or run the job based on context (e.g., branch name, event type). Expressions can reference variables, secrets, or GitHub context like `${{ github.ref }}`.
+From the official GitHub documentation (workflow syntax section on steps):
+- **Structure**: Under `jobs.<job_id>.steps`, define a list where each step is a map. Steps can execute shell commands (`run`) or reuse existing actions (`uses`).
+- **name**: A string label for the step, shown in the GitHub UI logs (e.g., "Install Python packages"). Optional but recommended for readability.
+- **id**: A unique string identifier for the step (e.g., `install-deps`). Used to reference outputs later (e.g., `${{ steps.id.outputs.value }}`). Optional.
+- **if**: Conditional expression to run/skip the step (e.g., based on previous step success). Uses `${{ }}` syntax, like `${{ success() }}`.
+- **run**: Executes inline shell commands (e.g., `pip install numpy pandas`). Supports multi-line with `|`. The shell is inherited from `runs-on` or `defaults` (bash on Linux, PowerShell on Windows).
+- **uses**: References a reusable action from a marketplace, repo, or local path (e.g., `actions/checkout@v4` to clone the repo). Can include version pins for stability.
 - **Key Notes**:
-  - Jobs run in parallel unless `needs` is used.
-  - Failed jobs can halt the workflow (configurable later via `strategy`).
-  - Outputs from one job can be passed to another via `outputs` (we'll touch on this briefly here; deeper in Topic 11).
-  - All jobs inherit workflow-level `env` and `defaults`, but you can override at the job level.
+  - Steps run in order; a failure stops the job unless `continue-on-error` is set (next topic).
+  - Always start with `uses: actions/checkout@v4` to access your repo files (essential for data scripts).
+  - Outputs from `run` or `uses` can be captured for later steps/jobs.
+  - For data science: Use `run` for custom Python/R commands; `uses` for pre-built actions like testing or caching.
 
 **Syntax Overview**:
 ```yaml
 jobs:
-  <job_id>:  # e.g., validate-data
-    runs-on: ubuntu-latest  # Required: the runner
-    needs: []  # Optional: array of job_ids this depends on (empty = no deps)
-    if: ${{ github.ref == 'refs/heads/main' }}  # Optional: conditional
-    # outputs:  # Optional map for sharing data (e.g., { result: ${{ steps.step1.outputs.value }} })
-    # env:  # Job-level environment variables
-    # steps: ...  # Defined here (next topic)
+  <job_id>:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step name  # Optional
+        id: step-id  # Optional
+        if: ${{ condition }}  # Optional
+        run: |  # Or 'uses: action@version'
+          echo "Command 1"
+          echo "Command 2"
 ```
 
 **Examples Tailored to Data Science**:
-1. **Basic Job Structure**: A single job to run a Python script for data cleaning.
+1. **Basic Steps**: A job with steps to set up Python, install libs, and run a data script.
    ```yaml
    jobs:
-     clean-data:
+     analyze:
        runs-on: ubuntu-latest
        steps:
-         - uses: actions/checkout@v4
-         - name: Install Python deps
-           run: pip install pandas
-         - name: Clean dataset
-           run: python clean_data.py
+         - uses: actions/checkout@v4  # Clones repo
+         - name: Set up Python
+           uses: actions/setup-python@v5
+           with:
+             python-version: '3.11'
+         - name: Install dependencies
+           run: |
+             python -m pip install --upgrade pip
+             pip install pandas scikit-learn
+         - name: Run analysis
+           run: python analyze_data.py  # e.g., generates plots
    ```
 
-2. **With Dependencies (needs)**: Two jobs where `validate` must succeed before `train-model`.
+2. **With id and if**: Capture output from a step and conditionally run another.
    ```yaml
    jobs:
      validate:
        runs-on: ubuntu-latest
        steps:
          - uses: actions/checkout@v4
-         - name: Check data quality
-           run: python validate.py  # e.g., checks for missing values
-
-     train-model:
-       runs-on: ubuntu-latest
-       needs: validate  # Runs only after 'validate' succeeds
-       steps:
-         - uses: actions/checkout@v4
-         - name: Train ML model
-           run: python train.py  # e.g., fits a scikit-learn model
+         - id: check-size
+           name: Check dataset size
+           run: echo "size=$(wc -c < data.csv)" >> $GITHUB_OUTPUT
+         - name: Validate if large
+           if: steps.check-size.outputs.size > 1000000  # >1MB
+           run: python validate_large.py
    ```
 
-3. **With Conditional (if)**: Run a job only on the `main` branch, useful for production data pipelines.
+3. **Mixing run and uses**: Use a marketplace action for caching (speeds up repeated installs in data workflows).
    ```yaml
    jobs:
-     deploy-model:
+     build:
        runs-on: ubuntu-latest
-       if: github.ref == 'refs/heads/main'  # Skips on feature branches
-       needs: [validate, test]
        steps:
          - uses: actions/checkout@v4
-         - name: Deploy to cloud
-           run: python deploy.py  # e.g., uploads model to S3
+         - name: Cache Python deps
+           uses: actions/cache@v4
+           with:
+             path: ~/.cache/pip
+             key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+         - name: Install and build
+           run: |
+             pip install -r requirements.txt
+             python build_model.py
    ```
 
 **Common Pitfalls**:
-- `runs-on` is required; omitting it causes errors.
-- `needs` creates a dependency graph—circular references are invalid.
-- `if` expressions must be valid GitHub context syntax; test with simple conditions first.
-- Job IDs must be lowercase alphanumeric with hyphens (no spaces).
+- Forget `actions/checkout@v4`? Steps can't access repo files.
+- `run` commands must be shell-compatible (e.g., no Windows paths on Linux).
+- `uses` needs exact version (e.g., `@v4`) to avoid breaking changes.
+- Indentation: Steps list uses `-` at the same level.
 
-This sets the stage for orchestrating multi-step data workflows. Once comfortable, we'll build on this with job outputs and then steps.
+This makes your jobs actionable—next, we'll advance steps with customizations like env and timeouts.
 
 #### Practice Questions for Topic 12
-1. Write a YAML snippet for a workflow with two jobs: `fetch-data` (runs on `ubuntu-latest`, no dependencies) and `analyze-data` (runs on `macos-latest`, needs `fetch-data` to succeed). Include placeholder steps (e.g., `run: echo "Fetching..."`) for each.
+1. Write a YAML snippet for a job called `process-data` (runs on `ubuntu-latest`) with three steps: (a) Checkout code using `uses`, (b) A named step with `run` to install `numpy` via pip, (c) An `id`-ed step with `run` to execute `python process.py` (assume it processes a CSV).
 
-2. Fix this broken job structure (issues: missing runs-on, invalid if syntax, needs references non-existent job):
+2. Fix this broken steps list (issues: missing `-` for list items, invalid if without `${{ }}`, run multi-line not using `|`):
    ```
    jobs:
-     build:
-     if: github.ref = 'main'  # Wrong
-       needs: test  # 'test' not defined
-     steps:
-       - run: python build.py
-
-     deploy:
+     test:
        runs-on: ubuntu-latest
-       needs: build
        steps:
-         - run: python deploy.py
+         name: Setup
+         uses: actions/setup-node@v4
+         if: success  # Wrong syntax
+         run: npm install
+           npm test
    ```
 
-3. Create a job called `report` that only runs if the event is a `push` to the `develop` branch (use `if: github.event_name == 'push' && github.ref == 'refs/heads/develop'`). It should depend on a job called `test`, run on `windows-latest`, and have a simple step to generate a report.
+3. Create steps for a job `visualize` that includes: A conditional step (`if: github.ref == 'refs/heads/main'`) named "Generate Plot" that runs `python plot.py` only on main branch, and another step using `uses: actions/upload-artifact@v4` to upload results (include basic `with` for path, but keep it simple—no full with yet).
 
