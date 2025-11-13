@@ -107,3 +107,48 @@ This makes your jobs actionable—next, we'll advance steps with customizations 
 
 3. Create steps for a job `visualize` that includes: A conditional step (`if: github.ref == 'refs/heads/main'`) named "Generate Plot" that runs `python plot.py` only on main branch, and another step using `uses: actions/upload-artifact@v4` to upload results (include basic `with` for path, but keep it simple—no full with yet).
 
+#### Solutions
+1. Solution:
+    ```yaml
+    jobs:
+      process-data:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - name: Install NumPy
+            run: pip install numpy
+          - id: process-csv
+            name: Process a CSV
+            run: python process.py
+    ```
+
+2. Solution:
+    ```yaml
+    jobs:
+      test:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Setup Node
+            uses: actions/setup-node@v4
+          - name: Install and Test
+            if: ${{ success() }}
+            run: |
+              npm install
+              npm test
+    ```
+
+3. Solution:
+    ```yaml
+    jobs:
+      visualize:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Generate Plot
+            if: ${{ github.ref == 'refs/heads/main' }}
+            run: python plot.py  # Generates the plot file
+          - name: Upload Plot Artifact
+            uses: actions/upload-artifact@v4
+            with:
+              name: plot-results
+              path: ./output/  # Adjust to where plot.py saves files
+    ```
