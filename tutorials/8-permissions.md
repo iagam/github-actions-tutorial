@@ -56,3 +56,38 @@ Common Pitfalls: Forgetting permissions for actions (e.g., needs `contents: writ
        steps:
          - run: build
    ```
+
+#### Solutions
+1. Solution:
+   ```yaml
+   name: PR Comment Workflow
+   permissions:
+     contents: read
+     pull-requests: write
+   on: pull_request
+   jobs:
+     comment:
+       runs-on: ubuntu-latest
+       steps:
+         - run: echo "Commenting..."
+   ```
+
+2. Solution:
+   ```yaml
+   jobs:
+     deployment:
+       permissions:
+         id-token: write
+         packages: read
+       steps:
+   ```
+
+3. Solution:
+   ```yaml
+   permissions:
+     contents: read
+   jobs:
+     build:
+       steps:
+         - run: build
+   ```
