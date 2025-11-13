@@ -42,7 +42,10 @@ Common Pitfalls: Forgetting `id:` on steps for referencing, wrong output syntax 
          - id: check
            run: # Placeholder
    ```
-2. Write a two-job snippet: `compute` with output `sum: ${{ steps.calc.outputs.result }}` (step id: calc, run: echo "result=42" >> $GITHUB_OUTPUT), and `use` that needs compute, with a step echoing "${{ needs.compute.outputs.sum }}".
+2. Write a **two-job snippet**:
+- `compute` with output `sum: ${{ steps.calc.outputs.result }}` (step `id: calc`, `run: echo "result=42" >> $GITHUB_OUTPUT`)
+- and `use` that `needs: compute`, with a step echoing `${{ needs.compute.outputs.sum }}`.
+
 
 3. Fix this invalid outputs/env: Env not a map, output reference wrong.
    ```yaml
@@ -55,3 +58,48 @@ Common Pitfalls: Forgetting `id:` on steps for referencing, wrong output syntax 
            run: echo "ver=1.0" >> $GITHUB_OUTPUT
    ```
 
+#### Solutions
+1. Solution:
+    ```yaml
+    jobs:
+      validate:
+        env:
+          FORMAT: 'csv'
+        outputs:
+          valid: ${{ steps.check.outputs.is_valid }}
+        runs-on: ubuntu-latest
+        steps:
+          - id: check
+            run: echo "is_valid=true" >> $GITHUB_OUTPUT
+    ```
+
+2. Solution:
+    ```yaml
+    jobs:
+      compute:
+        runs-on: ubuntu-latest
+        outputs:
+          sum: ${{ steps.calc.outputs.result }}
+        steps:
+          - id: calc
+            run: echo "result=42" >> $GITHUB_OUTPUT
+
+      use:
+        needs: compute
+        runs-on: ubuntu-latest
+        steps:
+          - run: echo "${{ needs.compute.outputs.sum }}"
+    ```
+
+3. Solution:
+    ```yaml
+    jobs:
+      build:
+        env:
+          PYTHON: '3.8'
+        outputs:
+          version: ${{ steps.get.outputs.ver }}
+        steps:
+          - id: get
+            run: echo "ver=1.0" >> $GITHUB_OUTPUT
+    ```
