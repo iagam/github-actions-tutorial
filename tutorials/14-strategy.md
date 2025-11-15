@@ -121,3 +121,23 @@ Strategies unlock efficient CI/CD for DS experimentation. Next: Containers/servi
 3. Create a job `benchmark` with a matrix over `dataset: [small, medium, large]` and `framework: [sklearn, torch]`. Set `max-parallel: 3`, use `include` to add a `framework: xgboost` for `dataset: large` only, and have a step that runs `python benchmark.py --ds ${{ matrix.dataset }} --fw ${{ matrix.framework }}`.
 
 #### Solutions
+1. Solution:
+    ```yaml
+    jobs:
+      lint-code:
+        runs-on: ${{ matrix.os }}
+        strategy:
+          fail-fast: false
+          matrix:
+            os: [ubuntu-latest, macos-latest]
+            python-version: [3.10, 3.12]
+        steps:
+          - uses: actions/checkout@v4
+          - uses: actions/setup-python@v5
+            with:
+              python-version: ${{ matrix.python-version }}
+          - name: Lint code
+            run: |
+              pip install pylint
+              pylint my_script.py
+    ```
