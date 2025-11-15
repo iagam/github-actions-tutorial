@@ -179,3 +179,33 @@ Containers/services ensure "it works on my machine" becomes "it works in CI." Ne
           - name: Run Node Test
             run: node test.js  # e.g., connects with redis://default:secret@redis:6379
     ```
+
+3. Solution:
+    ```yaml
+    jobs:
+      ml-test:
+        runs-on: ubuntu-latest
+        container:
+          image: tensorflow/tensorflow:2.15.0-gpu
+        services:
+          redis:
+            image: redis:alpine
+            env:
+              REDIS_PASS: secret
+            options: >-
+              --health-cmd "redis-cli ping"
+              --health-interval 10s
+              --health-timeout 5s
+              --health-retries 5
+        steps:
+          - uses: actions/checkout@v4
+          - uses: actions/setup-python@v5
+            with:
+              python-version: 3.11
+          - name: Install Redis Client
+            run: pip install redis
+          - name: Test Model
+            run: python test_model.py
+            env:
+              REDIS_URL: redis://redis:6379
+    ```
