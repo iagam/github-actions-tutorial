@@ -153,3 +153,29 @@ Containers/services ensure "it works on my machine" becomes "it works in CI." Ne
               npm install
               node etl.js
     ```
+
+2. Solution:
+    ```yaml
+    jobs:
+      app-test:
+        runs-on: ubuntu-latest
+        container:
+          image: myorg/myapp:v1
+          credentials:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
+        services:
+          redis:
+            image: redis
+            env:
+              REDIS_PASS: secret
+            options: >-
+              --health-cmd "redis-cli ping"
+              --health-interval 10s
+              --health-timeout 5s
+              --health-retries 5
+        steps:
+          - uses: actions/checkout@v4
+          - name: Run Node Test
+            run: node test.js  # e.g., connects with redis://default:secret@redis:6379
+    ```
