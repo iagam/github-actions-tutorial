@@ -138,3 +138,18 @@ Containers/services ensure "it works on my machine" becomes "it works in CI." Ne
 
 3. Create a job `ml-test` with `container: image: tensorflow/tensorflow:2.15.0-gpu` (for GPU ML). Add a `services` for `redis: image: redis:alpine` with basic health options. Include steps: Checkout, and a run step `python test_model.py` using env `REDIS_URL: redis://redis:6379`.
 
+#### Solutions
+1. Solution:
+    ```yaml
+    jobs:
+      etl-pipeline:
+        runs-on: ubuntu-latest
+        container:
+          image: node:20
+        steps:
+          - uses: actions/checkout@v4
+          - name: Run ETL Pipeline
+            run: |
+              npm install
+              node etl.js
+    ```
