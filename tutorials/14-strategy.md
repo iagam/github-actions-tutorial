@@ -159,3 +159,28 @@ Strategies unlock efficient CI/CD for DS experimentation. Next: Containers/servi
         steps:
           - run: echo "Testing on ${{ matrix.os }} with version ${{ matrix.version }}"
     ```
+
+3. Solution:
+    ```yaml
+    jobs:
+      benchmark:
+        runs-on: ubuntu-latest
+        strategy:
+          max-parallel: 3
+          matrix:
+            dataset: [small, medium, large]
+            framework: [sklearn, torch]
+          include:
+            - dataset: large
+              framework: xgboost
+        steps:
+          - uses: actions/checkout@v4
+          - uses: actions/setup-python@v5
+            with:
+              python-version: 3.11
+          - name: Install frameworks
+            run: |
+              pip install scikit-learn torch xgboost
+          - name: Run Benchmark
+            run: python benchmark.py --ds ${{ matrix.dataset }} --fw ${{ matrix.framework }}
+    ```
