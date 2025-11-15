@@ -141,3 +141,21 @@ Strategies unlock efficient CI/CD for DS experimentation. Next: Containers/servi
               pip install pylint
               pylint my_script.py
     ```
+
+2. Solution:
+    ```yaml
+    jobs:
+      test:
+        runs-on: ${{ matrix.os }}
+        strategy:
+          matrix:
+            os: [ubuntu-latest, windows-latest]
+            version: [3.11]
+          max-parallel: 4
+          fail-fast: true
+          exclude:
+            - os: windows-latest
+            version: 3.11
+        steps:
+          - run: echo "Testing on ${{ matrix.os }} with version ${{ matrix.version }}"
+    ```
