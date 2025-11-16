@@ -133,3 +133,23 @@ Filters keep workflows lean and targeted. Final topic next: Full examples + debu
           - name: Analyze data
             run: python analyze.py
     ```
+
+2. Solution:
+    ```yaml
+    on:
+      push:
+        branches: ['main', 'feature/*']
+        paths:
+          - 'src/*.py'
+        pull_request:
+          types: ['opened', 'reopened']
+          branches: ['main']  # Limits PRs to main
+          paths:
+            - 'data/**'
+    jobs:
+      test:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Run tests
+            run: echo "Tests for ${{ github.event_name }} event"
+    ```
