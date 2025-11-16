@@ -127,3 +127,26 @@ Reusables modularize your workflows—next: Filter patterns for precise triggers
 
 3. Create a simple reusable workflow snippet (`deploy-ml.yml`) with `on: workflow_call`, inputs `model-path` (string, required) and `env-name` (string, default 'dev'), secrets `deploy-key` (required). Have a job `deploy` with a run step using them: `python deploy.py --model ${{ inputs.model-path }} --env ${{ inputs.env-name }} --key ${{ secrets.deploy-key }}`.
 
+#### Solutions
+1. Solution:
+    ```yaml
+    jobs:
+      run-validation:
+        uses: ./.github/workflows/data-check.yml@v1  # Full path for clarity
+        with:
+          file: 'reports.csv'
+          threshold: 0.85
+        secrets:
+          db-creds: ${{ secrets.DATABASE_PASS }}
+        outputs:
+          score: ${{ jobs.validate.outputs.score }}  # Map reusable's output (assume job_id 'validate')
+
+      post-validate:
+        needs: run-validation
+        runs-on: ubuntu-latest
+        steps:
+          - name: Use validation score
+            if: needs.run-validation.outputs.score > 0.8  # Placeholder using output (renamed 'quality' for match)
+            run: echo "Quality high: ${{ needs.run-validation.outputs.score }} - Proceed to deploy!"
+    ```
+
