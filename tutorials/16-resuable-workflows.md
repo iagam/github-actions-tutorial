@@ -181,5 +181,33 @@ Reusables modularize your workflows—next: Filter patterns for precise triggers
         secrets: inherit  # Passes any matching secrets
     ```
 
+3. Solution:
+    ```yaml
+    name: Deploy ML
+      on:
+        workflow_call:
+          inputs:
+            model-path:
+              description: 'Path to Model'
+              required: true
+              type: string
+            env-name:
+              description: 'Deployment environment'
+              type: string
+              default: 'dev'
+          secrets:
+            deploy-key:
+            required: true
+    jobs:
+      deploy:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - uses: actions/setup-python@v5
+            with:
+              python-version: '3.11'
+          - name: Deploy model
+            run: python deploy.py --model ${{ inputs.model-path }} --env ${{ inputs.env-name }} --key ${{ secrets.deploy-key }}
+    ```
 
 
