@@ -111,3 +111,25 @@ Filters keep workflows lean and targeted. Final topic next: Full examples + debu
 
 3. Create an `on:` section for a release workflow that triggers on `release: types: [published]` with tags matching `v*.*.*` (e.g., v1.2.3), and also on PRs to `main` only if `notebooks/` changes (`pull_request: branches: [main], paths: ['notebooks/**']`).
 
+#### Solutions
+1. Solution:
+    ```yaml
+    on:
+      push:
+        branches: ['main', 'develop']
+        paths:
+          - 'data/**'
+          - 'models/**'
+    jobs:
+      analyze:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - uses: actions/setup-python@v5
+            with:
+              python-version: '3.11'
+          - name: Install dependencies
+            run: pip install -r requirements.txt
+          - name: Analyze data
+            run: python analyze.py
+    ```
