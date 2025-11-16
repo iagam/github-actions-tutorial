@@ -44,3 +44,5 @@ The roadmap is divided into following logical topics.
 
 17. **Filter Patterns:** Advanced glob patterns for branches, paths, etc.
 
+18. **Putting it all together:** Combine all the learning into production ready workflows.
+
