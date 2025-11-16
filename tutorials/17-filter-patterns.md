@@ -153,3 +153,22 @@ Filters keep workflows lean and targeted. Final topic next: Full examples + debu
           - name: Run tests
             run: echo "Tests for ${{ github.event_name }} event"
     ```
+
+2. Solution:
+    ```yaml
+    on:
+      release:
+        types: [published]
+        tags: ['v*.*.*']
+      pull_request:
+        branches: [main]
+        paths:
+          - 'notebooks/**'
+    jobs:
+      test:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - name: Run tests
+            run: echo "Tests for ${{ github.event_name }} event"
+    ```
