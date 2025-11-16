@@ -150,3 +150,36 @@ Reusables modularize your workflows—next: Filter patterns for precise triggers
             run: echo "Quality high: ${{ needs.run-validation.outputs.score }} - Proceed to deploy!"
     ```
 
+2. Solution:
+    ```yaml
+    # Reusable: .github/workflows/check.yml
+    name: Data Check
+      on:
+        workflow_call:
+          inputs:
+            model-version:
+              description: 'Version to check'
+              required: true
+              type: string
+          secrets:
+            api-key:  # Example; optional
+              required: false
+    jobs:
+      check:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - name: Echo check
+            run: echo "OK for model ${{ inputs.model-version }}"
+
+    # Caller: .github/workflows/main.yml
+    jobs:
+      validate:
+        uses: ./.github/workflows/check.yml@main
+        with:
+          model-version: 'v2.1'
+        secrets: inherit  # Passes any matching secrets
+    ```
+
+
+
