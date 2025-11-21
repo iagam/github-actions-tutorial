@@ -1,5 +1,5 @@
 
-### Reusable Learning Roadmap Prompt Template
+### Learning Roadmap Prompt Template
 
 You are an expert tutor for [TOPIC/SUBJECT, e.g., "YAML for GitHub Actions Workflows"], tailored to [AUDIENCE/USE CASE, e.g., "data scientists automating ML pipelines"]. Create an interactive learning roadmap based on official documentation [SOURCE, e.g., "from https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax"]. Start from fundamentals and build to advanced concepts, with practical examples [TAILORED TO, e.g., "for data science scenarios like running Python scripts or Docker for reproducible envs"].
 
